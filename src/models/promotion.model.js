@@ -3,22 +3,14 @@ import { GET_DB } from '@/config/db.js'
 import { ObjectId } from 'mongodb'
 import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '@/utils/constant.utils.js'
 
-const PRODUCT_COLLECTION_NAME = 'products'
+const PROMOTION_COLLECTION_NAME = 'promotion_code'
 
-const PRODUCT_COLLECTION_SCHEMA = Joi.object({
+const PROMOTION_COLLECTION_SCHEMA = Joi.object({
   name: Joi.string().min(3).max(100).trim(),
-  image: Joi.string().trim(),
-  description: Joi.string().trim(),
-  detail: Joi.string().trim(),
-  on_sale: Joi.boolean(),
-  origin_price: Joi.number(),
-  promotion_price: Joi.number().allow(null),
-  category: Joi.string(),
-  category_slug: Joi.string(),
-  highlight: Joi.boolean(),
+  type: Joi.string().trim(),
+  value: Joi.string().trim(),
+  expired_date: Joi.string().trim(),
   status: Joi.string().trim(),
-  amount_in_stock: Joi.number(),
-  slug: Joi.string(),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
   _destroy: Joi.boolean().default(false)
@@ -27,20 +19,20 @@ const PRODUCT_COLLECTION_SCHEMA = Joi.object({
 const INVALID_UPDATE_FIELDS = ['_id', 'createdAt']
 
 const validateBeforeCreate = async (data) => {
-  return await PRODUCT_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
+  return await PROMOTION_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
 }
 
 const createNew = async (data) => {
   try {
     const validatedData = await validateBeforeCreate(data)
-    const newProductToAdd = {
+    const newPromotionToAdd = {
       ...validatedData
     }
-    const result = await GET_DB().collection(PRODUCT_COLLECTION_NAME).insertOne(newProductToAdd)
-    const createdProduct = await GET_DB()
-      .collection(PRODUCT_COLLECTION_NAME)
+    const result = await GET_DB().collection(PROMOTION_COLLECTION_NAME).insertOne(newPromotionToAdd)
+    const createdPromotion = await GET_DB()
+      .collection(PROMOTION_COLLECTION_NAME)
       .findOne({ _id: result.insertedId })
-    return createdProduct
+    return createdPromotion
   } catch (error) {
     throw new Error(error)
   }
@@ -54,24 +46,12 @@ const getList = async ({
   try {
     const skip = (page - 1) * limit
     const query = {}
-    const result = await GET_DB().collection(PRODUCT_COLLECTION_NAME)
+    const result = await GET_DB().collection(PROMOTION_COLLECTION_NAME)
 
     // remove undefined values
     const cleanFilters = Object.fromEntries(
       Object.entries(queryFilters).filter(([_, v]) => v !== undefined)
     )
-
-    // highlight filter
-    if (cleanFilters.highlight != null) {
-      query.highlight =
-        cleanFilters.highlight === 'true' ||
-        cleanFilters.highlight === true
-    }
-
-    // category filter
-    if (cleanFilters.category_slug) {
-      query.category_slug = cleanFilters.category_slug
-    }
 
     // search filter
     if (cleanFilters.q) {
@@ -85,7 +65,7 @@ const getList = async ({
       query._id = { $ne: new ObjectId(cleanFilters.exclude) }
     }
 
-    const [products, total] = await Promise.all([
+    const [promotions, total] = await Promise.all([
       result
         .find(query)
         .sort({ _id: -1 }) // createdAt
@@ -97,7 +77,7 @@ const getList = async ({
     ])
 
     return {
-      products,
+      promotions,
       pagination: {
         page,
         limit,
@@ -110,7 +90,7 @@ const getList = async ({
   }
 }
 
-const update = async (productId, updateData) => {
+const update = async (promotionId, updateData) => {
   try {
     Object.keys(updateData).forEach(fieldName => {
       if (INVALID_UPDATE_FIELDS.includes(fieldName)) {
@@ -122,9 +102,9 @@ const update = async (productId, updateData) => {
     const newUpdateData = { ...validatedUpdateData }
 
     const result = await GET_DB()
-      .collection(PRODUCT_COLLECTION_NAME)
+      .collection(promotion_COLLECTION_NAME)
       .findOneAndUpdate(
-        { _id: new ObjectId(productId) },
+        { _id: new ObjectId(promotionId) },
         { $set: newUpdateData },
         { returnDocument: 'after' }
       )
@@ -135,29 +115,29 @@ const update = async (productId, updateData) => {
   }
 }
 
-const remove = async (productId) => {
+const remove = async (promotionId) => {
   try {
-    const result = await GET_DB().collection(PRODUCT_COLLECTION_NAME).findOneAndDelete({ _id: new ObjectId(productId) })
+    const result = await GET_DB().collection(PROMOTION_COLLECTION_NAME).findOneAndDelete({ _id: new ObjectId(promotionId) })
     return result
   } catch (error) {
     throw new Error(error)
   }
 }
 
-const getProductBySlug = async (req, res) => {
+const getpromotionBySlug = async (req, res) => {
   try {
-    const product = await GET_DB().collection(PRODUCT_COLLECTION_NAME).findOne({ slug: req.params.slug })
-    if (!product) return res.status(404).json({ message: 'Not found product.' })
-    return product
+    const promotion = await GET_DB().collection(PROMOTION_COLLECTION_NAME).findOne({ slug: req.params.slug })
+    if (!promotion) return res.status(404).json({ message: 'Not found promotion.' })
+    return promotion
   } catch (error) {
     throw new Error(error)
   }
 }
 
-export const productModel = {
+export const promotionModel = {
   createNew,
   getList,
   update,
   remove,
-  getProductBySlug
+  getpromotionBySlug
 }

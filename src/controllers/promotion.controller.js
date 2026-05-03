@@ -1,12 +1,12 @@
 import { StatusCodes } from 'http-status-codes'
 import { responseSuccess } from '@/common/helpers/response.helper.js'
 import { ObjectId } from 'mongodb'
-import { productService } from '../services/product.service.js'
+import { promotionService } from '../services/promotion.service.js'
 
 const createNew = async (req, res, next) => {
   try {
-    const result = await productService.createNew(req.body)
-    const response = responseSuccess(result, 'Create product successfully', StatusCodes.CREATED)
+    const result = await promotionService.createNew(req.body)
+    const response = responseSuccess(result, 'Create promotion successfully', StatusCodes.CREATED)
     res.status(response.code).json(response)
   } catch (err) {
     next(err)
@@ -17,8 +17,8 @@ const getList = async (req, res, next) => {
   try {
     const { page, limit, q, ...rest } = req.query
     const queryFilters = { ...rest, q }
-    const products = await productService.getList(page, limit, queryFilters)
-    const resData = responseSuccess(products, 'Get all products successfully')
+    const promotions = await promotionService.getList(page, limit, queryFilters)
+    const resData = responseSuccess(promotions, 'Get all promotions successfully')
     res.status(resData.code).json(resData)
   } catch (err) {
     next(err)
@@ -27,27 +27,27 @@ const getList = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const productId = req.params.id
+    const promotionId = req.params.id
     const { ...updateFields } = req.body
 
-    if (!productId) {
+    if (!promotionId) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         code: StatusCodes.BAD_REQUEST,
-        message: 'Product ID is can not be empty'
+        message: 'Promotion ID is can not be empty'
       })
     }
 
-    if (!ObjectId.isValid(productId)) {
+    if (!ObjectId.isValid(promotionId)) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         code: StatusCodes.BAD_REQUEST,
-        message: 'Product ID is invalid'
+        message: 'Promotion ID is invalid'
       })
     }
 
     const updateData = { ...updateFields }
 
-    const updatedProduct = await productService.update(productId, updateData)
-    const resData = responseSuccess(updatedProduct, 'Product updated successfully')
+    const updatedpromotion = await promotionService.update(promotionId, updateData)
+    const resData = responseSuccess(updatedpromotion, 'Promotion updated successfully')
     res.status(resData.code).json(resData)
   } catch (error) {
     next(error)
@@ -56,25 +56,25 @@ const update = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   try {
-    const productId = req.params.id
+    const promotionId = req.params.id
 
-    if (!ObjectId.isValid(productId)) {
+    if (!ObjectId.isValid(promotionId)) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         code: StatusCodes.BAD_REQUEST,
-        message: 'Product ID is invalid'
+        message: 'Promotion ID is invalid'
       })
     }
 
-    const result = await productService.remove(productId)
+    const result = await promotionService.remove(promotionId)
 
     if (!result) {
       return res.status(StatusCodes.NOT_FOUND).json({
         code: StatusCodes.NOT_FOUND,
-        message: 'Product not found'
+        message: 'Promotion not found'
       })
     }
 
-    const resData = responseSuccess(result, 'Product removed successfully')
+    const resData = responseSuccess(result, 'Promotion removed successfully')
     res.status(resData.code).json(resData)
 
   } catch (error) {
@@ -82,20 +82,20 @@ const remove = async (req, res, next) => {
   }
 }
 
-const getProductBySlug = async (req, res, next) => {
+const getpromotionBySlug = async (req, res, next) => {
   try {
-    const product = await productService.getProductBySlug(req, res)
-    const resData = responseSuccess(product, 'Get product detail successfully')
+    const promotion = await promotionService.getpromotionBySlug(req, res)
+    const resData = responseSuccess(promotion, 'Get promotion detail successfully')
     res.status(resData.code).json(resData)
   } catch (err) {
     next(err)
   }
 }
 
-export const productController = {
+export const promotionController = {
   createNew,
   getList,
   update,
   remove,
-  getProductBySlug
+  getpromotionBySlug
 }
