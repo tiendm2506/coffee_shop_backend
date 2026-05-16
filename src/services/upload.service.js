@@ -2,35 +2,33 @@ import fs from 'fs'
 import cloudinary from '@/config/cloudinary.js'
 import { uploadModel } from '../models/upload.model.js'
 
-const uploadImage = async (file) => {
+const uploadImages = async (files) => {
   const FOLDER_NAME = 'images_coffee_shop'
-  try {
-    if (!file) throw new Error('No file uploaded')
-
-    // upload image to cloudinary
-    const result = await cloudinary.uploader.upload(file.path, {
-      folder: FOLDER_NAME
-    })
-
-    // delete file local
-    fs.unlinkSync(file.path)
-
-    // Save DB
-    await uploadModel.createUpload({
-      url: result.secure_url,
-      public_id: result.public_id,
-      original_name: file.originalname
-    })
-
-    return {
-      url: result.secure_url,
-      public_id: result.public_id
-    }
-  } catch (error) {
-    throw error
+  if (!files?.length) {
+    throw new Error('No files uploaded' )
   }
+  const results =
+    await Promise.all(
+      files.map(async (file) => {
+        const result = await cloudinary.uploader.upload(
+          file.path,
+          { folder: FOLDER_NAME }
+        )
+        fs.unlinkSync(file.path)
+        await uploadModel.createUpload({
+          url: result.secure_url,
+          public_id: result.public_id,
+          original_name: file.originalname
+        })
+        return {
+          url: result.secure_url,
+          public_id: result.public_id
+        }
+      })
+    )
+  return results
 }
 
 export const uploadService = {
-  uploadImage
+  uploadImages
 }

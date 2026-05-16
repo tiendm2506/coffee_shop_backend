@@ -2,35 +2,39 @@ import Joi from 'joi'
 import { GET_DB } from '@/config/db.js'
 import { ObjectId } from 'mongodb'
 import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '@/utils/constant.utils.js'
+import { STATUS } from '@/utils/constant.utils.js'
 
 const PRODUCT_COLLECTION_NAME = 'products'
 const OBJECT_ID_RULE = /^[0-9a-fA-F]{24}$/
 
 
 const PRODUCT_COLLECTION_SCHEMA = Joi.object({
-  name: Joi.string().min(3).max(100).trim(),
-  image: Joi.string().trim(),
-  description: Joi.string().trim(),
-  detail: Joi.string().trim(),
-  on_sale: Joi.boolean(),
-  origin_price: Joi.number(),
-  promotion_price: Joi.number().allow(null),
+  name: Joi.string().min(3).max(100).trim().pattern(/^[a-zA-Z0-9\s]+$/).required(),
+  images: Joi.array().items(Joi.string().uri()).min(1).required(),
+  description: Joi.string().trim().required(),
+  detail: Joi.string().trim().required(),
+  on_sale: Joi.boolean().default(false),
+  origin_price: Joi.number().min(0).required(),
+  promotion_price: Joi.number().min(0).allow(null),
   category: Joi.object({
     id: Joi.string().pattern(OBJECT_ID_RULE).required(),
     name: Joi.string().trim().required(),
     slug: Joi.string().trim().required()
-  })
-    .required()
-    .unknown(false),
-
-  highlight: Joi.boolean(),
-  status: Joi.string().trim(),
-  amount_in_stock: Joi.number(),
-  slug: Joi.string(),
+  }).required().unknown(false),
+  highlight: Joi.boolean().default(false),
+  status: Joi.string().valid(STATUS.ACTIVE, STATUS.INACTIVE).default(STATUS.ACTIVE),
+  amount_in_stock: Joi.number().min(0).required(),
+  slug: Joi.string().trim().required(),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
   _destroy: Joi.boolean().default(false)
 })
+  .custom((value, helpers) => {
+    if (value.on_sale && (value.promotion_price == null || value.promotion_price >= value.origin_price)) {
+      return helpers.message('Promotion price must be less than origin price')
+    }
+    return value
+  })
 
 const INVALID_UPDATE_FIELDS = ['_id', 'createdAt']
 
@@ -176,11 +180,20 @@ const countProductByCategoryId = async (categoryId) => {
   }
 }
 
+const findOneById = async (productId) => {
+  return await GET_DB()
+    .collection(PRODUCT_COLLECTION_NAME)
+    .findOne({
+      _id: new ObjectId(productId)
+    })
+}
+
 export const productModel = {
   createNew,
   getList,
   update,
   remove,
   getProductBySlug,
-  countProductByCategoryId
+  countProductByCategoryId,
+  findOneById
 }

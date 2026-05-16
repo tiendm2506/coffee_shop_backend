@@ -1,4 +1,6 @@
 import { productModel } from '@/models/product.model.js'
+import { uploadModel } from '@/models/upload.model.js'
+import cloudinary from '@/config/cloudinary.js'
 import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '../utils/constant.utils.js'
 
 const createNew = async (reqBody) => {
@@ -27,12 +29,25 @@ const getList = async (page, limit, queryFilters) => {
 
 const update = async (productId, reqBody) => {
   try {
+    const oldProduct = await productModel.findOneById(productId)
+    if (!oldProduct) throw new Error('Product not found')
+    const oldImages = oldProduct.images || []
+    const newImages = reqBody.images || []
+    const removedImages = oldImages.filter(
+      img => !newImages.includes(img)
+    )
+    for (const imageUrl of removedImages) {
+      const upload = await uploadModel.findByUrl(imageUrl)
+      if (upload?.public_id) {
+        await cloudinary.uploader.destroy(upload.public_id)
+        await uploadModel.deleteByPublicId(upload.public_id)
+      }
+    }
     const updateData = {
       ...reqBody,
-      updatedAt: Date.now(),
+      updatedAt: Date.now()
     }
-    const updatedProduct = await productModel.update(productId, updateData)
-    return updatedProduct
+    return await productModel.update(productId, updateData)
   } catch (error) {
     throw new Error(error)
   }
@@ -40,6 +55,15 @@ const update = async (productId, reqBody) => {
 
 const remove = async (productId) => {
   try {
+    const product = await productModel.findOneById(productId)
+    if (!product) throw new Error('Product not found')
+    for (const imageUrl of product.images || []) {
+      const upload = await uploadModel.findByUrl(imageUrl)
+      if (upload?.public_id) {
+        await cloudinary.uploader.destroy(upload.public_id)
+        await uploadModel.deleteByPublicId(upload.public_id)
+      }
+    }
     const result = await productModel.remove(productId)
     return result
   } catch (error) {

@@ -1,12 +1,12 @@
 import { uploadService } from '../services/upload.service.js'
 
-const uploadImage = async (req, res, next) => {
+const uploadImages = async (req, res, next) => {
   try {
-    const file = req.file
-    const result = await uploadService.uploadImage(file)
+    const files = req.files
+    const result = await uploadService.uploadImages(files)
     return res.status(200).json({
       success: true,
-      url: result.url
+      images: result
     })
   } catch (error) {
     next(error)
@@ -14,5 +14,5 @@ const uploadImage = async (req, res, next) => {
 }
 
 export const uploadController = {
-  uploadImage
+  uploadImages
 }

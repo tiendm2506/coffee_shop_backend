@@ -3,7 +3,12 @@ import { upload } from '../middlewares/upload.middleware.js'
 import { uploadController } from '../controllers/upload.controller.js'
 
 const uploadRouter = express.Router()
+const MAX_FILES = 4 // Allow upload max 4 images
 
-uploadRouter.post('/image', upload.single('upload'), uploadController.uploadImage)
+uploadRouter.post(
+  '/images',
+  upload.array('uploads', MAX_FILES),
+  uploadController.uploadImages
+)
 
 export default uploadRouter
