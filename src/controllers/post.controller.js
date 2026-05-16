@@ -82,15 +82,22 @@ const remove = async (req, res, next) => {
   }
 }
 
-const getDetail = async (req, res, next) => {
+const getDetailBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params
-
-    const result = await postService.getDetail(slug)
-
+    const result = await postService.getDetailBySlug(slug)
     const resData = responseSuccess(result, 'Get post detail successfully')
     res.status(resData.code).json(resData)
 
+  } catch (error) {
+    next(error)
+  }
+}
+const getDetailById = async (req, res, next) => {
+  try {
+    const result = await postService.getDetailById(req.params.id)
+    const resData = responseSuccess(result, 'Get post detail successfully')
+    res.status(resData.code).json(resData)
   } catch (error) {
     next(error)
   }
@@ -102,5 +109,6 @@ export const postController = {
   getList,
   update,
   remove,
-  getDetail
+  getDetailBySlug,
+  getDetailById
 }

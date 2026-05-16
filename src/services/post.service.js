@@ -48,19 +48,27 @@ const remove = async (postId) => {
   }
 }
 
-const getDetail = async (slug) => {
+const getDetailBySlug = async (slug) => {
   try {
-    return await postModel.getDetail(slug)
+    return await postModel.getDetailBySlug(slug)
   } catch (error) {
     throw error
   }
 }
 
+const getDetailById = async (id) => {
+  try {
+    return await postModel.getDetailById(id)
+  } catch (error) {
+    throw error
+  }
+}
 
 export const postService = {
   createNew,
   getList,
   update,
   remove,
-  getDetail
+  getDetailBySlug,
+  getDetailById
 }

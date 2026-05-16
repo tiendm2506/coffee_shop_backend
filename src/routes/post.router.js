@@ -9,6 +9,7 @@ postRouter.post('/create', postController.createNew)
 postRouter.get('/list', postController.getList)
 postRouter.put('/update/:id', postController.update)
 postRouter.delete('/remove/:id', postController.remove)
-postRouter.get('/:slug', postController.getDetail)
+postRouter.get('/detail/:id', postController.getDetailById)
+postRouter.get('/:slug', postController.getDetailBySlug)
 
 export default postRouter

@@ -164,12 +164,27 @@ const remove = async (PostId) => {
   }
 }
 
-const getDetail = async (slug) => {
+const getDetailBySlug = async (slug) => {
   try {
     const result = await GET_DB()
       .collection(POST_COLLECTION_NAME)
       .findOne({
         slug,
+        _destroy: false
+      })
+
+    return result
+  } catch (error) {
+    throw error
+  }
+}
+
+const getDetailById = async (id) => {
+  try {
+    const result = await GET_DB()
+      .collection(POST_COLLECTION_NAME)
+      .findOne({
+        _id: new ObjectId(id),
         _destroy: false
       })
 
@@ -185,5 +200,6 @@ export const postModel = {
   getList,
   update,
   remove,
-  getDetail
+  getDetailBySlug,
+  getDetailById
 }
