@@ -29,23 +29,19 @@ const update = async (req, res, next) => {
   try {
     const postId = req.params.id
     const { ...updateFields } = req.body
-
     if (!postId) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         code: StatusCodes.BAD_REQUEST,
         message: 'Post ID is can not be empty'
       })
     }
-
     if (!ObjectId.isValid(postId)) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         code: StatusCodes.BAD_REQUEST,
         message: 'Post ID is invalid'
       })
     }
-
     const updateData = { ...updateFields }
-
     const updatedPost = await postService.update(postId, updateData)
     const resData = responseSuccess(updatedPost, 'Post updated successfully')
     res.status(resData.code).json(resData)
@@ -57,26 +53,21 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
   try {
     const postId = req.params.id
-
     if (!ObjectId.isValid(postId)) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         code: StatusCodes.BAD_REQUEST,
         message: 'Post ID is invalid'
       })
     }
-
     const result = await postService.remove(postId)
-
     if (!result) {
       return res.status(StatusCodes.NOT_FOUND).json({
         code: StatusCodes.NOT_FOUND,
         message: 'Post not found'
       })
     }
-
     const resData = responseSuccess(result, 'Post removed successfully')
     res.status(resData.code).json(resData)
-
   } catch (error) {
     next(error)
   }

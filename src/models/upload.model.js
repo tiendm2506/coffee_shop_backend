@@ -14,10 +14,7 @@ const UPLOAD_COLLECTION_SCHEMA = Joi.object({
 
 const validateBeforeCreate = async (data) => {
   return await UPLOAD_COLLECTION_SCHEMA.validateAsync(
-    data,
-    {
-      abortEarly: false
-    }
+    data, { abortEarly: false }
   )
 }
 

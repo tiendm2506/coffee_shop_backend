@@ -1,6 +1,7 @@
 import { postModel } from '../models/post.model.js'
 import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '../utils/constant.utils.js'
-import { BadRequestException } from '../common/helpers/error.helper.js'
+import { extractImageUrls } from '../helpers/string.helper.js'
+import { uploadService } from './upload.service'
 
 const createNew = async (reqBody) => {
   try {
@@ -41,10 +42,29 @@ const update = async (postId, reqBody) => {
 
 const remove = async (postId) => {
   try {
-    const result = await postModel.remove(postId)
-    return result
+    const post = await postModel.findOneById(postId)
+    if (!post) {
+      throw new Error('Post not found')
+    }
+    // delete thumbnail
+    if (post.thumbnail?.url) {
+      await uploadService.deleteImageByUrl(
+        post.thumbnail.url
+      )
+    }
+
+    // delete content images
+    const imageUrls = extractImageUrls(
+      post.content
+    )
+    await Promise.all(
+      imageUrls.map((url) =>
+        uploadService.deleteImageByUrl(url)
+      )
+    )
+    return await postModel.remove(postId)
   } catch (error) {
-    throw new BadRequestException(error.message)
+    throw error
   }
 }
 

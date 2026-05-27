@@ -29,7 +29,11 @@ const POST_COLLECTION_SCHEMA = Joi.object({
     }),
   slug: Joi.string().required('Slug is required'),
   content: Joi.string().required('Content is required'),
-  thumbnail: Joi.string().allow('').default(''),
+  thumbnail: Joi.object({
+    url: Joi.string().uri().required(),
+    public_id: Joi.string().required()
+  }).optional(),
+
   category: Joi.object({
     id: Joi.string().pattern(OBJECT_ID_RULE).required(),
     name: Joi.string().trim().required(),
@@ -37,6 +41,7 @@ const POST_COLLECTION_SCHEMA = Joi.object({
   })
     .required()
     .unknown(false),
+
   published: Joi.boolean().default(true),
   highlight: Joi.boolean().default(false),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
@@ -194,6 +199,14 @@ const getDetailById = async (id) => {
   }
 }
 
+const findOneById = async (id) => {
+  return await GET_DB()
+    .collection(POST_COLLECTION_NAME)
+    .findOne({
+      _id: new ObjectId(id)
+    })
+}
+
 
 export const postModel = {
   createNew,
@@ -201,5 +214,6 @@ export const postModel = {
   update,
   remove,
   getDetailBySlug,
-  getDetailById
+  getDetailById,
+  findOneById
 }
