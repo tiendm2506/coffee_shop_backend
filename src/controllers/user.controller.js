@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import { responseSuccess } from '@/common/helpers/response.helper.js'
-import { userService } from '@/services/user.service'
+import { userService } from '@/services/user.service.js'
 
 const register = async (req, res, next) => {
   try {

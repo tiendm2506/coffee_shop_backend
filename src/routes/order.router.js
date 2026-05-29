@@ -7,8 +7,7 @@ const orderRouter = express.Router()
 
 orderRouter.post('/create', orderController.createNew)
 orderRouter.get('/list', orderController.getList)
-orderRouter.put('/update/:id', orderController.update)
-orderRouter.delete('/remove/:id', orderController.remove)
-// orderRouter.get('/:id', orderController.getOrderById)
+orderRouter.put('/update/:id', protect, orderController.update)
+orderRouter.delete('/remove/:id', protect, orderController.remove)
 
 export default orderRouter

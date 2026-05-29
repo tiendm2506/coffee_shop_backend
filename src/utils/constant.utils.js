@@ -9,6 +9,11 @@ export const WEBSITE_DOMAIN = (env.BUILD_MODE === 'production') ? env.WEBSITE_DO
 export const DEFAULT_PAGE = 1
 export const DEFAULT_ITEMS_PER_PAGE = 10
 
+export const USER_ROLE = {
+  USER: 'user',
+  ADMIN: 'admin'
+}
+
 export const STATUS = {
   ACTIVE: 'Active',
   INACTIVE: 'Inactive'

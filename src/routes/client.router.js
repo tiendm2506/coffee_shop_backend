@@ -7,6 +7,6 @@ const clientRouter = express.Router()
 
 clientRouter.post('/create', clientController.createNew)
 clientRouter.get('/list', clientController.getList)
-clientRouter.delete('/remove/:id', clientController.remove)
+clientRouter.delete('/remove/:id', protect, clientController.remove)
 
 export default clientRouter

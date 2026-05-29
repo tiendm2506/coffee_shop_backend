@@ -2,6 +2,7 @@ import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '@/config/db.js'
 import { BadRequestException } from '@/common/helpers/error.helper.js'
+import { USER_ROLE } from '../utils/constant.utils.js'
 import bcrypt from 'bcrypt'
 
 const USER_COLLECTION_NAME = 'users'
@@ -10,9 +11,7 @@ const USER_COLLECTION_SCHEMA = Joi.object({
   fullName: Joi.string().min(2).max(100).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  phone: Joi.string().optional(),
-  avatar: Joi.string().optional(),
-  role: Joi.string().valid('user', 'admin').default('user'),
+  role: Joi.string().valid(USER_ROLE.USER, USER_ROLE.ADMIN).default(USER_ROLE.USER),
   isActive: Joi.boolean().default(true),
   isVerified: Joi.boolean().default(false),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
@@ -27,11 +26,15 @@ const validateBeforeCreate = async (data) => {
 }
 
 const register = async (data) => {
+  console.log('data: ', data)
   try {
     const existingUser = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ email: data.email.toLowerCase().trim() })
     if (existingUser) throw new BadRequestException('Email already exists')
 
-    const validatedData = await validateBeforeCreate(data)
+    const validatedData = await validateBeforeCreate({
+      ...data,
+      role: USER_ROLE.USER
+    })
     const newUserToAdd = {
       ...validatedData,
       password: bcrypt.hashSync(validatedData.password, 10)
