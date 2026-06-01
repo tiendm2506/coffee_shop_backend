@@ -27,7 +27,8 @@ const login = async (reqBody) => {
       user: {
         id: existingUser._id,
         email: existingUser.email,
-        role: existingUser.role
+        role: existingUser.role,
+        name: existingUser.fullName
       }
     }
   } catch (error) {
@@ -55,7 +56,15 @@ const refreshToken = async(req) => {
 
   const tokens = createTokens(existingUser)
 
-  return tokens
+  return {
+    ...tokens,
+    user: {
+      id: existingUser._id,
+      email: existingUser.email,
+      role: existingUser.role,
+      name: existingUser.fullName
+    }
+  }
 }
 
 const createTokens = (user) => {
