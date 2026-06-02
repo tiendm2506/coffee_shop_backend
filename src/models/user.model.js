@@ -26,7 +26,6 @@ const validateBeforeCreate = async (data) => {
 }
 
 const register = async (data) => {
-  console.log('data: ', data)
   try {
     const existingUser = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ email: data.email.toLowerCase().trim() })
     if (existingUser) throw new BadRequestException('Email already exists')

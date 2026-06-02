@@ -7,8 +7,9 @@ const productRouter = express.Router()
 
 productRouter.post('/create', protect, productController.createNew)
 productRouter.get('/list', productController.getList)
-productRouter.put('/update/:id', protect, productController.update)
+productRouter.put('/update/:id', productController.update)
 productRouter.delete('/remove/:id', protect, productController.remove)
+productRouter.get('/best-selling', productController.getBestSellingProduct)
 productRouter.get('/:slug', productController.getProductBySlug)
 
 export default productRouter

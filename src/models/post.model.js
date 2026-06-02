@@ -93,6 +93,13 @@ const getList = async ({
         cleanFilters.highlight === true
     }
 
+    // published filter
+    if (cleanFilters.published != null) {
+      query.published =
+        cleanFilters.published === 'true' ||
+        cleanFilters.published === true
+    }
+
     // category filter
     if (cleanFilters.category_slug) {
       query['category.slug'] = cleanFilters.category_slug

@@ -1,5 +1,6 @@
 import { productModel } from '@/models/product.model.js'
 import { uploadModel } from '@/models/upload.model.js'
+import { orderModel } from '@/models/order.model.js'
 import cloudinary from '@/config/cloudinary.js'
 import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '../utils/constant.utils.js'
 
@@ -80,10 +81,21 @@ const getProductBySlug = async (req, res) => {
   }
 }
 
+const getBestSellingProduct = async (limit) => {
+  try {
+    const result = await orderModel.getBestSellingProduct(limit)
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+
 export const productService = {
   createNew,
   getList,
   update,
   remove,
-  getProductBySlug
+  getProductBySlug,
+  getBestSellingProduct
 }

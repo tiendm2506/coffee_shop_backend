@@ -18,3 +18,9 @@ export const STATUS = {
   ACTIVE: 'Active',
   INACTIVE: 'Inactive'
 }
+
+export const ORDER_STATUS = {
+  NEW: 'New',
+  CANCEL: 'Canceled',
+  COMPLETE: 'Completed'
+}

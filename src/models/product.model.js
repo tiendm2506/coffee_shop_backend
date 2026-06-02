@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb'
 import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '@/utils/constant.utils.js'
 import { STATUS } from '@/utils/constant.utils.js'
 
-const PRODUCT_COLLECTION_NAME = 'products'
+export const PRODUCT_COLLECTION_NAME = 'products'
 const OBJECT_ID_RULE = /^[0-9a-fA-F]{24}$/
 
 
@@ -78,6 +78,11 @@ const getList = async ({
       query.highlight =
         cleanFilters.highlight === 'true' ||
         cleanFilters.highlight === true
+    }
+
+    // status filter
+    if (cleanFilters.status) {
+      query.status = cleanFilters.status
     }
 
     // category filter
@@ -188,6 +193,28 @@ const findOneById = async (productId) => {
     })
 }
 
+const updateAmountInStock = async (productId, quantity) => {
+  try {
+    const result = await GET_DB()
+      .collection(PRODUCT_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: new ObjectId(productId)
+        },
+        {
+          $inc: { amount_in_stock: quantity }
+        },
+        {
+          returnDocument: 'after'
+        }
+      )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const productModel = {
   createNew,
   getList,
@@ -195,5 +222,6 @@ export const productModel = {
   remove,
   getProductBySlug,
   countProductByCategoryId,
-  findOneById
+  findOneById,
+  updateAmountInStock
 }

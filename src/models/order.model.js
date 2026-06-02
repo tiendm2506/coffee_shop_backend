@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { GET_DB } from '@/config/db.js'
 import { ObjectId } from 'mongodb'
-import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '@/utils/constant.utils.js'
+import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE, ORDER_STATUS } from '@/utils/constant.utils.js'
 
 const ORDER_COLLECTION_NAME = 'orders'
 
@@ -41,8 +41,8 @@ const ORDER_COLLECTION_SCHEMA = Joi.object({
   }).required(),
 
   order_status: Joi.string()
-    .valid('New', 'Cancelled', 'Completed')
-    .default('New'),
+    .valid(ORDER_STATUS.NEW, ORDER_STATUS.CANCEL, ORDER_STATUS.COMPLETE)
+    .default(ORDER_STATUS.NEW),
   total_items: Joi.number().integer().min(1).required(),
   total_price: Joi.number().min(0).required(),
   discount: Joi.number().min(0).default(0),
@@ -85,14 +85,17 @@ const remove = async (orderId) => {
 }
 
 const update = async (orderId, updateData) => {
-  const ALLOWED_STATUS = ['New', 'Canceled', 'Completed']
+  const ALLOWED_STATUS = [ORDER_STATUS.NEW, ORDER_STATUS.CANCEL, ORDER_STATUS.COMPLETE]
   try {
+    const order = await GET_DB().collection(ORDER_COLLECTION_NAME).findOne({ _id: new ObjectId(orderId) })
     const { order_status } = updateData
 
+    if (!order) {
+      throw new Error('Order not found.')
+    }
     if (!order_status) {
       throw new Error('order_status is required')
     }
-
     if (!ALLOWED_STATUS.includes(order_status)) {
       throw new Error('Invalid order_status')
     }
@@ -169,9 +172,69 @@ const getList = async ({
   }
 }
 
+const findOneById = async (orderId) => {
+  return await GET_DB()
+    .collection(ORDER_COLLECTION_NAME)
+    .findOne({
+      _id: new ObjectId(orderId)
+    })
+}
+
+const getBestSellingProduct = async (limit = 3) => {
+  try {
+    const result = await GET_DB()
+      .collection(ORDER_COLLECTION_NAME)
+      .aggregate([
+        // only get orders exists (not deleted)
+        {
+          $match: { _destroy: false }
+        },
+
+        // seperate item in items[]
+        { $unwind: '$items' },
+
+        // group product by id
+        {
+          $group: {
+            _id: '$items.product_id',
+            total_sold: { $sum: '$items.quantity' },
+            product: { $first: '$items' }
+          }
+        },
+
+        // sort total sold by decreasing
+        {
+          $sort: { total_sold: -1 }
+        },
+
+        // get top limit products
+        { $limit: Number(limit) },
+
+        // format data
+        {
+          $project: {
+            _id: 0,
+            product_id: '$_id',
+            name: '$product.name',
+            slug: '$product.slug',
+            image: { $arrayElemAt: ['$product.images', 0] },
+            total_sold: 1
+          }
+        }
+      ])
+      .toArray()
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const orderModel = {
   createNew,
   remove,
   update,
-  getList
+  getList,
+  findOneById,
+  getBestSellingProduct
 }

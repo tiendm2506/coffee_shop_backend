@@ -92,10 +92,22 @@ const getProductBySlug = async (req, res, next) => {
   }
 }
 
+const getBestSellingProduct = async (req, res, next) => {
+  try {
+    const { limit = 3 } = req.query
+    const products = await productService.getBestSellingProduct(Number(limit))
+    const resData = responseSuccess(products, 'Get best selling product successfully')
+    res.status(resData.code).json(resData)
+  } catch (err) {
+    next(err)
+  }
+}
+
 export const productController = {
   createNew,
   getList,
   update,
   remove,
-  getProductBySlug
+  getProductBySlug,
+  getBestSellingProduct
 }
