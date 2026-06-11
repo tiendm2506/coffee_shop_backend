@@ -18,7 +18,7 @@ const getList = async (req, res, next) => {
     const { page, limit, q, ...rest } = req.query
     const queryFilters = { ...rest, q }
     const products = await productService.getList(page, limit, queryFilters)
-    const resData = responseSuccess(products, 'Get all products successfully 123')
+    const resData = responseSuccess(products, 'Get all products successfully 456')
     res.status(resData.code).json(resData)
   } catch (err) {
     next(err)
